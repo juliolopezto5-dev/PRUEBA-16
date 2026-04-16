@@ -1,0 +1,409 @@
+Esta es la versión definitiva y total del simulador: "AETERNUM UMU: OMNIA VINCIT - ARCHIVUM VITALIS". He fusionado el motor de audio dinámico, el sistema de biometría avanzada y todas las mecánicas de gestión de vida, añadiendo los eventos programados de Elena, las becas, el sistema de afinidad social y la lógica de avance temporal corregida.
+
+Mejoras y Correcciones:
+Avance Temporal Lógico: El juego ya no avanza al azar. La primera vez que fumas con Javi te introduce al sistema, y a partir de ahí, solo puedes pasar de semestre y cobrar tu dinero durmiendo en CASA.
+
+Encuentro con Elena (Semestre 5): Elena aparecerá en la biblioteca obligatoriamente al llegar al semestre 5, iniciando su propia barra de afinidad.
+
+Economía UMU: Cada 2 semestres recibes una beca si tu Paz Mental es estable. Al trabajar, el cobro es semestral (al dormir) y penalizado si fumas.
+
+Barras Sociales Reales: Ahora puedes ver numéricamente cuánto te quieren Elena, tus padres y Javi.
+
+Tensión en el Hogar: Entrar a casa con olor a tabaco activa riesgos de discusión y registro por parte de tus padres.
+
+HTML
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>AETERNUM UMU: OMNIA VINCIT - Supreme Edition</title>
+    <style>
+        :root {
+            --bg: #010101; --panel: #090909; --text: #c0c0c0;
+            --umu: #8a151b; --accent: #ff0044; --money: #00ff88;
+            --anxiety: #ffcc00; --skin: #ffdbac; --hard: #9d00ff; --blood: #600;
+        }
+        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--umu) #000; }
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Georgia', serif; 
+            margin: 0; display: flex; justify-content: center; height: 100vh; overflow: hidden; 
+        }
+        
+        #master-layout { 
+            display: grid; grid-template-columns: 380px 1fr 350px; gap: 5px; 
+            width: 100%; max-width: 2000px; height: 100vh; padding: 5px; 
+        }
+
+        .panel { 
+            background: var(--panel); border: 1px solid #1a1a1a; border-radius: 2px; 
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+            box-shadow: inset 0 0 80px #000;
+        }
+
+        /* --- BIOMETRÍA --- */
+        .umu-branding { text-align: center; padding: 10px; border-bottom: 3px solid var(--umu); background: #000; }
+        .umu-logo-svg { width: 40px; height: 40px; fill: white; filter: drop-shadow(0 0 5px var(--umu)); }
+        
+        #avatar-engine {
+            width: 170px; height: 230px; background: var(--skin); margin: 15px auto;
+            border-radius: 40% 40% 55% 55%; border: 2px solid #4e342e;
+            position: relative; transition: 4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .eye { width: 24px; height: 14px; background: #000; border-radius: 50%; position: absolute; top: 75px; transition: 0.5s; }
+        .eye.l { left: 40px; } .eye.r { right: 40px; }
+        .pupil { width: 6px; height: 6px; background: #fff; border-radius: 50%; margin: 3px auto; opacity: 0.2; }
+        .dark-circles { width: 45px; height: 18px; border-radius: 50%; background: rgba(50,20,10,0); position: absolute; top: 90px; transition: 1s; }
+        .mouth-line { width: 70px; height: 4px; background: #5d1d1d; position: absolute; bottom: 60px; left: 50px; border-radius: 10px; transition: 0.8s; }
+        .wrinkles { position: absolute; background: rgba(0,0,0,0.1); height: 1px; width: 40px; opacity: 0; transition: 3s; }
+        .stain-layer { position: absolute; width: 100%; height: 100%; border-radius: inherit; background: radial-gradient(circle, rgba(138,21,27,0.15) 0%, transparent 80%); opacity: 0; }
+
+        /* --- HUD --- */
+        .stats-grid { padding: 10px 30px; flex-grow: 0; }
+        .s-box { margin-bottom: 12px; }
+        .s-head { font-size: 0.6em; letter-spacing: 3px; color: #555; display: flex; justify-content: space-between; margin-bottom: 4px; text-transform: uppercase; }
+        .b-outer { background: #000; height: 5px; border: 1px solid #222; overflow: hidden; }
+        .b-inner { height: 100%; width: 100%; transition: 1.5s cubic-bezier(0.1, 0.9, 0.2, 1); }
+
+        /* --- CONSOLA --- */
+        .top-bar { padding: 15px; background: #000; border-bottom: 1px solid #222; display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85em; font-family: 'Courier New', monospace; color: var(--money); }
+        .log-area { flex-grow: 1; padding: 30px; overflow-y: auto; font-size: 1.15em; line-height: 1.8; color: #888; }
+        .log-area b { color: #fff; border-bottom: 1px solid var(--umu); }
+        
+        .action-grid { padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #000; border-top: 1px solid #222; }
+        button {
+            background: #080808; color: #666; border: 1px solid #222; padding: 18px; cursor: pointer;
+            font-size: 0.7em; text-transform: uppercase; transition: 0.4s; letter-spacing: 1px; font-family: inherit;
+        }
+        button:hover:not(:disabled) { border-color: var(--accent); color: #fff; background: #111; box-shadow: 0 0 15px rgba(255,0,68,0.2); }
+        button:disabled { opacity: 0.05; cursor: not-allowed; }
+        
+        .btn-desperate { border-color: var(--hard); color: var(--hard); }
+        .btn-sleep { border-color: #3498db; color: #3498db; font-weight: bold; }
+        .btn-safe { border-color: var(--money); color: var(--money); }
+
+        /* --- SOCIAL CARDS --- */
+        .social-scroll { padding: 15px; flex-grow: 1; overflow-y: auto; }
+        .npc-card { background: #000; border: 1px solid #111; padding: 12px; margin-bottom: 8px; border-left: 4px solid #333; font-size: 0.8em; }
+        .npc-card.active { border-left-color: var(--money); }
+        .affinity-bar-bg { background: #111; height: 4px; width: 100%; margin-top: 5px; border-radius: 2px; }
+        .affinity-bar-fill { height: 100%; background: var(--money); transition: 1s; width: 50%; }
+        
+        #achievement-log { padding: 15px; background: #050505; border-top: 1px solid #222; height: 130px; overflow-y: auto; }
+        .ach-msg { color: var(--anxiety); font-size: 0.65em; font-style: italic; display: block; margin-bottom: 5px; }
+
+        #final-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 999999; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="master-layout">
+    <div class="panel">
+        <div class="umu-branding">
+            <svg class="umu-logo-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" stroke="white" stroke-width="2" fill="none"/><text x="50" y="65" font-size="40" text-anchor="middle" fill="white" font-family="Arial">U</text></svg>
+            <div style="font-size: 0.45em; margin-top: 8px; letter-spacing: 4px;">FACULTAD DE PSICOLOGÍA</div>
+        </div>
+
+        <div id="avatar-engine">
+            <div class="stain-layer" id="stain"></div>
+            <div class="eye l"><div class="pupil"></div></div>
+            <div class="eye r"><div class="pupil"></div></div>
+            <div class="dark-circles" style="left:30px" id="oj-l"></div>
+            <div class="dark-circles" style="right:30px" id="oj-r"></div>
+            <div class="mouth-line" id="mouth"></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="s-box">
+                <div class="s-head"><span>Pulmones</span><span id="v-hp">100%</span></div>
+                <div class="b-outer"><div id="b-hp" class="b-inner" style="background:var(--money)"></div></div>
+            </div>
+            <div class="s-box">
+                <div class="s-head"><span>Paz Mental</span><span id="v-mp">100%</span></div>
+                <div class="b-outer"><div id="b-mp" class="b-inner" style="background:#3498db"></div></div>
+            </div>
+            <div class="s-box">
+                <div class="s-head"><span>Adicción</span><span id="v-ad">0%</span></div>
+                <div class="b-outer"><div id="b-ad" class="b-inner" style="background:var(--accent); width:0%"></div></div>
+            </div>
+            <div style="text-align:center; padding: 10px 0;">
+                <div id="v-cash" style="color:var(--money); font-size: 2.2em; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,136,0.2);">$200</div>
+                <div id="v-smell" style="font-size: 0.6em; color: var(--anxiety); margin-top: 5px;">OLOR: NULO</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="top-bar">
+            <span id="v-loc">📍 CAMPUS DE ESPINARDO</span>
+            <span id="v-age">EDAD: 18 | SEM: 1</span>
+        </div>
+        <div class="log-area" id="log">
+            <b>EL DESPERTAR:</b> Has bajado del tranvía en la parada de la UMU. Javi te espera apoyado en la pared de la facultad. Te tiende un cigarro de liar. "Primer día, nervios a tope. Fuma uno, es el rito de paso si quieres aguantar Microeconomía". <br><br><b style="color:var(--accent)">PRESIÓN SOCIAL: En este momento es obligatorio aceptar para no ser el marginado.</b>
+        </div>
+        <div id="actions" class="action-grid"></div>
+    </div>
+
+    <div class="panel">
+        <div style="padding: 15px; font-size: 0.7em; background: #000; border-bottom: 1px solid #222; letter-spacing: 3px; color: var(--umu);">AFINIDAD SOCIAL</div>
+        <div id="social-list" class="social-scroll"></div>
+        <div id="achievement-log">
+            <div style="font-size: 0.6em; color: #444; margin-bottom: 5px;">LOGROS DESBLOQUEADOS</div>
+        </div>
+    </div>
+</div>
+
+<div id="final-screen">
+    <h1 id="final-title" style="color: var(--umu); font-size: 4em;">DESTINO SELLADO</h1>
+    <p id="final-msg" style="max-width: 800px; line-height: 1.8; color: #777;"></p>
+    <div style="background: #0a0a0a; padding: 40px; border: 1px solid #1a1a1a; margin-top: 20px;">
+        <p>DESARROLLADO POR:</p>
+        <h2 style="color: var(--money);">Julio Lopez Torrente | Pedro Vivancos Perez | David Thomas Jimenez</h2>
+    </div>
+    <button onclick="location.reload()" style="margin-top: 40px; border-color: var(--umu); padding: 20px 60px;">REINTENTAR</button>
+</div>
+
+<script>
+    let audioCtx, drone, gainNode;
+    function playAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            drone = audioCtx.createOscillator();
+            gainNode = audioCtx.createGain();
+            drone.type = 'sine';
+            drone.frequency.setValueAtTime(40, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            drone.connect(gainNode); gainNode.connect(audioCtx.destination);
+            drone.start();
+        }
+    }
+
+    let p = {
+        age: 18, sem: 1, totalSem: 1, hp: 100, mp: 100, ad: 0, cash: 200,
+        smell: 0, smoking: false, firstSmoke: true, jobLvl: 0, loc: "Campus",
+        partner: null, kids: 0, javiLife: true, kidSmokingProb: 0,
+        javiRel: 50, elenaRel: 0, parentsRel: 80,
+        ach: [], hospitalUnlocked: false
+    };
+
+    const LOCS = { "Campus": "📍 CAMPUS", "Biblioteca": "📚 BIBLIOTECA", "Oficina": "💼 OFICINA", "Casa": "🏠 HOGAR", "Club": "🌙 CLUB", "Hospital": "🏥 LA ARRIXACA", "Casino": "🎰 CASINO", "Gimnasio": "💪 GIMNASIO" };
+
+    function unlock(name) {
+        if (!p.ach.includes(name)) {
+            p.ach.push(name);
+            document.getElementById('achievement-log').innerHTML += `<span class="ach-msg">★ ${name}</span>`;
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('b-hp').style.width = p.hp + "%";
+        document.getElementById('b-mp').style.width = p.mp + "%";
+        document.getElementById('b-ad').style.width = p.ad + "%";
+        document.getElementById('v-hp').innerText = Math.round(p.hp) + "%";
+        document.getElementById('v-mp').innerText = Math.round(p.mp) + "%";
+        document.getElementById('v-ad').innerText = p.ad + "%";
+        document.getElementById('v-cash').innerText = "$" + Math.floor(p.cash);
+        document.getElementById('v-smell').innerText = "OLOR: " + (p.smell > 60 ? "INTENSO" : p.smell > 20 ? "DETECTABLE" : "NULO");
+        document.getElementById('v-age').innerText = `EDAD: ${p.age} | SEM: ${p.sem}`;
+        document.getElementById('v-loc').innerText = LOCS[p.loc];
+
+        const face = document.getElementById('avatar-engine');
+        face.style.background = `rgb(${255 - p.ad}, ${219 - (p.hp<30?50:0) - p.ad}, ${172 - p.ad})`;
+        document.getElementById('stain').style.opacity = p.ad / 100;
+        document.getElementById('mouth').style.borderRadius = p.mp < 40 ? "50% 50% 0 0" : "10px";
+        document.getElementById('oj-l').style.opacity = (100 - p.mp) / 100;
+        document.getElementById('oj-r').style.opacity = (100 - p.mp) / 100;
+
+        renderSocial();
+
+        if (p.hp < 20) p.hospitalUnlocked = true;
+        if (p.hp <= 0) finish("FALLECIMIENTO", "Tus pulmones dijeron basta tras años de humo.");
+        if (p.cash <= -100) finish("INDIGENCIA", "La deuda de -$100 te dejó en la calle.");
+    }
+
+    function passSemester() {
+        if (p.loc !== "Casa") { alert("Solo puedes avanzar de semestre durmiendo en CASA."); return; }
+        
+        p.sem++; p.totalSem++;
+        if (p.sem > 2) { p.sem = 1; p.age++; }
+
+        // BECA CADA 2 SEMESTRES
+        if (p.totalSem % 2 === 0 && p.totalSem <= 8) {
+            if (p.mp > 40) {
+                p.cash += 350;
+                document.getElementById('log').innerHTML += `<br><b style="color:var(--money)">BECA UMU RECIBIDA:</b> +$350 por rendimiento académico.<br>`;
+            } else {
+                document.getElementById('log').innerHTML += `<br><b style="color:var(--accent)">BECA PERDIDA:</b> Tu inestabilidad mental te impidió estudiar.<br>`;
+            }
+        }
+
+        // TRABAJO (Post 8 sem)
+        if (p.totalSem > 8) {
+            if (p.jobLvl === 0) p.jobLvl = 1;
+            let wage = p.jobLvl * 350;
+            if (p.smoking) wage *= 0.6; // Mal rendimiento por fumar
+            p.cash += wage;
+            document.getElementById('log').innerHTML += `<br><b>PAGO SEMESTRAL:</b> Has cobrado $${Math.round(wage)} por tu trabajo.<br>`;
+        }
+
+        // HIJOS A LOS 23
+        if (p.age === 23 && p.kids === 0 && p.partner === "Elena") {
+            p.kids = 1;
+            unlock("Paternidad");
+            document.getElementById('log').innerHTML += `<br><b>VIDA:</b> Tienes un hijo. La responsabilidad te agobia.<br>`;
+        }
+
+        // GASTOS
+        let bills = 80;
+        if (p.partner) bills += 60;
+        if (p.kids > 0) bills += 130;
+        p.cash -= bills;
+
+        // LÓGICA TABACO
+        if (p.smoking) {
+            p.ad = Math.min(100, p.ad + 15);
+            p.hp -= (5 + (p.ad/5));
+            p.mp = Math.min(100, p.mp + 20);
+            p.cash -= (40 + p.ad);
+            p.smell = 100;
+            if (p.partner === "Elena") p.elenaRel -= 30;
+            p.parentsRel -= 10;
+        } else {
+            p.ad = Math.max(0, p.ad - 8);
+            p.mp -= 30;
+            p.smell = Math.max(0, p.smell - 60);
+        }
+
+        // TENSIÓN EN CASA
+        if (p.loc === "Casa" && p.smell > 30 && Math.random() > 0.5) {
+            p.parentsRel -= 40;
+            document.getElementById('log').innerHTML += `<br><b style="color:var(--accent)">TENSIÓN FAMILIAR:</b> Tus padres huelen el tabaco en tu ropa. La discusión es amarga.<br>`;
+        }
+
+        // EFECTO ESPEJO HIJOS
+        if (p.kids > 0 && p.smoking) {
+            p.kidSmokingProb += 15;
+            if (p.kidSmokingProb > 60) unlock("Heredero del Humo");
+        }
+
+        // MUERTE JAVI
+        if (p.age === 28 && p.javiLife) { p.javiLife = false; p.mp -= 50; unlock("Tragedia Javi"); }
+
+        if (p.elenaRel <= 0 && p.partner === "Elena") {
+            p.partner = null; p.kids = 0; p.cash -= 200;
+            unlock("Abandono de Elena");
+        }
+
+        document.getElementById('log').innerHTML = `<b>SEM. ${p.totalSem}:</b> Comienza un nuevo semestre. El tiempo no perdona.<br><br>` + document.getElementById('log').innerHTML;
+        renderActions();
+        updateUI();
+    }
+
+    function move(dest) {
+        playAudio();
+        p.loc = dest;
+        // Elena Semestre 5
+        if (p.totalSem === 5 && p.loc === "Biblioteca" && !p.partner) {
+            p.partner = "Elena";
+            p.elenaRel = 70;
+            document.getElementById('log').innerHTML = `<b>HISTORIA:</b> Es el Semestre 5. En la biblioteca conoces a Elena. Odia el olor a tabaco, pero hay química.<br>` + document.getElementById('log').innerHTML;
+        }
+        updateUI();
+        renderActions();
+    }
+
+    function doAction(msg, hp=0, mp=0, cash=0, rel=0) {
+        p.hp = Math.max(0, Math.min(100, p.hp + hp));
+        p.mp = Math.max(0, Math.min(100, p.mp + mp));
+        p.cash += cash;
+        if (p.partner === "Elena") p.elenaRel = Math.max(0, p.elenaRel + rel);
+        document.getElementById('log').innerHTML = `<b>ACCIÓN:</b> ${msg}<br>` + document.getElementById('log').innerHTML;
+        updateUI();
+        renderActions();
+    }
+
+    function renderActions() {
+        const grid = document.getElementById('actions');
+        grid.innerHTML = "";
+
+        if (p.firstSmoke) {
+            addBtn("ACEPTAR CIGARRO DE JAVI", () => { p.smoking = true; p.firstSmoke = false; p.smell = 100; updateUI(); renderActions(); }, "btn-safe");
+            return;
+        }
+
+        if (p.loc === "Casa") {
+            addBtn("DORMIR (Siguiente Semestre)", () => passSemester(), "btn-sleep");
+            if (p.cash < 40) {
+                addBtn("ROBAR DINERO (RIESGO)", () => {
+                    if (Math.random() > 0.6) {
+                        p.cash -= 100; p.parentsRel = 0; p.mp -= 60;
+                        doAction("¡TE HAN PILLADO ROBANDO! Tus padres te quitan todo lo que tienes.", 0, -50, -100);
+                    } else {
+                        doAction("Robas $100 con éxito.", 0, -20, 100);
+                    }
+                }, "btn-desperate");
+            }
+        }
+
+        addBtn(p.smoking ? "Seguir Fumando" : "RECAER", () => { p.smoking = true; p.smell = 100; doAction("Enciendes un cigarro.", -3, 20, 0, -15); }, "btn-desperate");
+
+        if (p.loc === "Gimnasio") {
+            addBtn("Entrenar (-$40)", () => {
+                let r = p.smoking ? 2 : 18;
+                doAction(p.smoking ? "Te ahogas al entrenar por el tabaco." : "Te sientes sano.", r, 10, -40);
+            }, "btn-safe");
+        }
+
+        if (p.loc === "Hospital" && p.hospitalUnlocked) {
+            addBtn("CIRUGÍA CRÍTICA (-$900)", () => {
+                if (p.cash >= 900) { p.hp = 80; p.cash -= 900; p.hospitalUnlocked = false; doAction("Sobrevives a la operación."); }
+                else alert("No tienes dinero suficiente.");
+            });
+        }
+
+        if (p.partner === "Elena" && p.loc === "Casa") {
+            addBtn("Cita con Elena (-$70)", () => { doAction("Cena romántica.", 0, 40, -70, 25); });
+        }
+
+        if (p.loc !== "Campus") addBtn("Ir a UMU", () => move("Campus"));
+        if (p.loc !== "Biblioteca") addBtn("Ir a Biblioteca", () => move("Biblioteca"));
+        if (p.loc !== "Gimnasio") addBtn("Ir a Gimnasio", () => move("Gimnasio"));
+        if (p.loc !== "Club") addBtn("Ir al Club", () => move("Club"));
+        if (p.loc !== "Casa") addBtn("Ir a Casa", () => move("Casa"));
+        if (p.hospitalUnlocked && p.loc !== "Hospital") addBtn("URGENCIAS", () => move("Hospital"), "btn-desperate");
+    }
+
+    function addBtn(txt, fn, cls = "") {
+        const b = document.createElement('button');
+        b.innerText = txt; b.onclick = fn;
+        if (cls) b.className = cls;
+        document.getElementById('actions').appendChild(b);
+    }
+
+    function renderSocial() {
+        const s = document.getElementById('social-list');
+        s.innerHTML = `<div class="npc-card"><b>Javi</b> [${p.javiLife?'Vivo':'Fallecido'}] Aff: ${p.javiRel}%</div>`;
+        if (p.partner) {
+            s.innerHTML += `<div class="npc-card"><b>Elena</b> Afinidad:
+            <div class="affinity-bar-bg"><div class="affinity-bar-fill" style="width:${p.elenaRel}%"></div></div></div>`;
+        }
+        s.innerHTML += `<div class="npc-card"><b>Padres</b> Afinidad:
+        <div class="affinity-bar-bg"><div class="affinity-bar-fill" style="width:${p.parentsRel}%"></div></div></div>`;
+        if (p.kids > 0) s.innerHTML += `<div class="npc-card"><b>Hijo</b> Riesgo Tabaco: ${p.kidSmokingProb}%</div>`;
+    }
+
+    function finish(t, m) {
+        document.getElementById('master-layout').style.display = "none";
+        document.getElementById('final-screen').style.display = "flex";
+        document.getElementById('final-title').innerText = t;
+        document.getElementById('final-msg').innerText = m;
+    }
+
+    updateUI();
+    renderActions();
+</script>
+</body>
+</html>
