@@ -1,395 +1,214 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>AETERNUM UMU: OMNIA VINCIT - Supreme Edition</title>
-    <style>
-        :root {
-            --bg: #010101; --panel: #090909; --text: #c0c0c0;
-            --umu: #8a151b; --accent: #ff0044; --money: #00ff88;
-            --anxiety: #ffcc00; --skin: #ffdbac; --hard: #9d00ff; --blood: #600;
-        }
-        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--umu) #000; }
-        body { 
-            background: var(--bg); color: var(--text); font-family: 'Georgia', serif; 
-            margin: 0; display: flex; justify-content: center; height: 100vh; overflow: hidden; 
-        }
-        
-        #master-layout { 
-            display: grid; grid-template-columns: 380px 1fr 350px; gap: 5px; 
-            width: 100%; max-width: 2000px; height: 100vh; padding: 5px; 
-        }
-
-        .panel { 
-            background: var(--panel); border: 1px solid #1a1a1a; border-radius: 2px; 
-            display: flex; flex-direction: column; overflow: hidden; position: relative;
-            box-shadow: inset 0 0 80px #000;
-        }
-
-        /* --- BIOMETRÍA --- */
-        .umu-branding { text-align: center; padding: 10px; border-bottom: 3px solid var(--umu); background: #000; }
-        .umu-logo-svg { width: 40px; height: 40px; fill: white; filter: drop-shadow(0 0 5px var(--umu)); }
-        
-        #avatar-engine {
-            width: 170px; height: 230px; background: var(--skin); margin: 15px auto;
-            border-radius: 40% 40% 55% 55%; border: 2px solid #4e342e;
-            position: relative; transition: 4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .eye { width: 24px; height: 14px; background: #000; border-radius: 50%; position: absolute; top: 75px; transition: 0.5s; }
-        .eye.l { left: 40px; } .eye.r { right: 40px; }
-        .pupil { width: 6px; height: 6px; background: #fff; border-radius: 50%; margin: 3px auto; opacity: 0.2; }
-        .dark-circles { width: 45px; height: 18px; border-radius: 50%; background: rgba(50,20,10,0); position: absolute; top: 90px; transition: 1s; }
-        .mouth-line { width: 70px; height: 4px; background: #5d1d1d; position: absolute; bottom: 60px; left: 50px; border-radius: 10px; transition: 0.8s; }
-        .wrinkles { position: absolute; background: rgba(0,0,0,0.1); height: 1px; width: 40px; opacity: 0; transition: 3s; }
-        .stain-layer { position: absolute; width: 100%; height: 100%; border-radius: inherit; background: radial-gradient(circle, rgba(138,21,27,0.15) 0%, transparent 80%); opacity: 0; }
-
-        /* --- HUD --- */
-        .stats-grid { padding: 10px 30px; flex-grow: 0; }
-        .s-box { margin-bottom: 12px; }
-        .s-head { font-size: 0.6em; letter-spacing: 3px; color: #555; display: flex; justify-content: space-between; margin-bottom: 4px; text-transform: uppercase; }
-        .b-outer { background: #000; height: 5px; border: 1px solid #222; overflow: hidden; }
-        .b-inner { height: 100%; width: 100%; transition: 1.5s cubic-bezier(0.1, 0.9, 0.2, 1); }
-
-        /* --- CONSOLA --- */
-        .top-bar { padding: 15px; background: #000; border-bottom: 1px solid #222; display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85em; font-family: 'Courier New', monospace; color: var(--money); }
-        .log-area { flex-grow: 1; padding: 30px; overflow-y: auto; font-size: 1.15em; line-height: 1.8; color: #888; }
-        .log-area b { color: #fff; border-bottom: 1px solid var(--umu); }
-        
-        .action-grid { padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #000; border-top: 1px solid #222; }
-        button {
-            background: #080808; color: #666; border: 1px solid #222; padding: 18px; cursor: pointer;
-            font-size: 0.7em; text-transform: uppercase; transition: 0.4s; letter-spacing: 1px; font-family: inherit;
-        }
-        button:hover:not(:disabled) { border-color: var(--accent); color: #fff; background: #111; box-shadow: 0 0 15px rgba(255,0,68,0.2); }
-        button:disabled { opacity: 0.05; cursor: not-allowed; }
-        
-        .btn-desperate { border-color: var(--hard); color: var(--hard); }
-        .btn-sleep { border-color: #3498db; color: #3498db; font-weight: bold; }
-        .btn-safe { border-color: var(--money); color: var(--money); }
-
-        /* --- SOCIAL CARDS --- */
-        .social-scroll { padding: 15px; flex-grow: 1; overflow-y: auto; }
-        .npc-card { background: #000; border: 1px solid #111; padding: 12px; margin-bottom: 8px; border-left: 4px solid #333; font-size: 0.8em; }
-        .npc-card.active { border-left-color: var(--money); }
-        .affinity-bar-bg { background: #111; height: 4px; width: 100%; margin-top: 5px; border-radius: 2px; }
-        .affinity-bar-fill { height: 100%; background: var(--money); transition: 1s; width: 50%; }
-        
-        #achievement-log { padding: 15px; background: #050505; border-top: 1px solid #222; height: 130px; overflow-y: auto; }
-        .ach-msg { color: var(--anxiety); font-size: 0.65em; font-style: italic; display: block; margin-bottom: 5px; }
-
-        #final-screen {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 999999; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 40px;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oli y Pipo</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{height:100%}*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:#03080f;font-family:"Nunito","Segoe UI",system-ui,sans-serif;display:flex;justify-content:center;align-items:center}
+#stage{width:min(100vw,1100px,177.77vh);aspect-ratio:16/9;position:relative;overflow:hidden;background:#0b3b5c;container-type:inline-size}
+#stage:fullscreen{width:min(100vw,177.77vh)}
+.scene{position:absolute;inset:0;opacity:0;transition:opacity 1.2s}
+.scene.on{opacity:1}
+.scene svg{width:100%;height:100%;display:block}
+#vig{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(2,10,25,.45)),linear-gradient(transparent 70%,rgba(2,10,25,.35))}
+#sub{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);width:64%;padding:.55em 1em;border-radius:12px;background:rgba(6,16,30,.76);color:#fff;text-align:center;font-weight:700;line-height:1.35;font-size:clamp(13px,2.2vw,24px);font-size:2.3cqw;text-shadow:0 1px 3px rgba(0,0,0,.7);z-index:3;display:none}
+#credits{position:absolute;top:2.2%;left:1.8%;z-index:6;padding:.3em .7em;border-radius:8px;background:rgba(6,16,30,.5);color:#fff;font-size:10px;font-size:1.05cqw;font-weight:700;max-width:60%}
+#start,#end{position:absolute;inset:0;z-index:5;background:radial-gradient(circle at 50% 35%,#5fdcf5,#1260a8 70%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center;padding:1rem}
+#end{display:none}
+h1{font-size:clamp(34px,8vw,84px);margin:0;font-weight:800;text-shadow:0 4px 18px rgba(0,40,90,.45)}
+#start p{margin:0;font-size:clamp(14px,2vw,22px);font-weight:600}
+.row{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
+button{font:inherit;font-weight:800;font-size:clamp(14px,2vw,20px);padding:.6em 1.5em;border:0;border-radius:999px;background:#ff7a59;color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+button.alt{background:rgba(255,255,255,.25)}
+button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.float{animation:fl 5s ease-in-out infinite}
+.bob{animation:bob 3.2s ease-in-out infinite}
+.rise{animation:rise 5s ease-in infinite}
+.flash{animation:fa .9s steps(1) infinite}
+.b{animation:up 10s linear infinite}
+.dr{animation:dr 40s linear infinite}
+.cl{animation:dr 90s linear infinite}
+.rays{transform-origin:800px 0;animation:ray 14s ease-in-out infinite alternate}
+.sw{transform-box:fill-box;transform-origin:50% 100%;animation:sw 5s ease-in-out infinite alternate}
+.w{transform-box:fill-box;transform-origin:50% 0;animation:wg 3s ease-in-out infinite alternate}
+.e{transform-box:fill-box;transform-origin:center;animation:bl 4.6s infinite}
+.a0,.a1{transition:opacity .8s}
+.a1{opacity:0}
+svg[data-step="1"] .a0{opacity:0}
+svg[data-step="1"] .a1{opacity:1}
+.scr{transform-box:fill-box;transform-origin:center;transition:transform 1s ease}
+svg[data-step="1"] .scr{transform:scaleY(.07)}
+@keyframes fl{50%{transform:translateY(16px)}}
+@keyframes bob{50%{transform:translateY(-12px) rotate(2deg)}}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-190px);opacity:0}}
+@keyframes fa{0%{--oc:#e63946}50%{--oc:#22c55e}}
+@keyframes up{from{transform:translateY(0)}to{transform:translateY(-1100px)}}
+@keyframes dr{from{transform:translateX(1900px)}to{transform:translateX(-300px)}}
+@keyframes ray{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+@keyframes sw{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+@keyframes wg{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+@keyframes bl{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+@keyframes camA{from{transform:scale(1)}to{transform:scale(1.14)}}
+@keyframes camB{from{transform:scale(1.14)}to{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.scene svg{animation:none!important}.float,.bob,.rise,.b,.dr,.cl,.rays,.sw,.w,.e{animation:none!important}}
+</style>
 </head>
 <body>
+<div id="stage">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fe0f5"/><stop offset=".5" stop-color="#1b86d8"/><stop offset="1" stop-color="#0b3a8c"/></linearGradient>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fd3ff"/><stop offset="1" stop-color="#fff0c4"/></linearGradient>
+<linearGradient id="scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4f6ff"/><stop offset="1" stop-color="#7ab8ff"/></linearGradient>
+<linearGradient id="og" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d4a72"/><stop offset="1" stop-color="#0b1626"/></linearGradient>
+<linearGradient id="bel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#b9d8ee"/></linearGradient>
+<radialGradient id="glow"><stop offset="0" stop-color="#b4f6ff" stop-opacity=".65"/><stop offset="1" stop-color="#b4f6ff" stop-opacity="0"/></radialGradient>
+<radialGradient id="sunG"><stop offset=".3" stop-color="#fff7b0"/><stop offset="1" stop-color="#ffd23f" stop-opacity="0"/></radialGradient>
+<symbol id="orca" viewBox="0 -12 400 212">
+<path d="M14 108C14 60 70 30 160 30C250 30 320 62 350 96L388 52C394 70 392 92 378 108C392 124 396 146 388 162L346 124C310 158 240 176 160 176C80 176 14 156 14 108Z" fill="url(#og)"/>
+<path d="M170 32L206 -8L216 34Z" fill="#101d31"/>
+<path d="M26 120C60 152 120 168 180 168C250 168 300 150 330 128C290 142 240 144 190 140C120 136 60 130 26 120Z" fill="url(#bel)"/>
+<path d="M150 130C160 168 196 186 224 176C206 156 196 140 190 128Z" fill="#0a1320"/>
+<ellipse cx="96" cy="82" rx="28" ry="13" fill="#fff" transform="rotate(-18 96 82)"/>
+<g class="e"><circle cx="86" cy="84" r="7" fill="#0a1320"/><circle cx="84" cy="81" r="2.2" fill="#fff"/></g>
+<ellipse cx="72" cy="114" rx="11" ry="7" fill="#ff9bb5" opacity=".55"/>
+<path d="M30 122Q62 146 112 130" stroke="#eaf6ff" stroke-width="5" fill="none" stroke-linecap="round"/>
+<g style="display:var(--sh,none)"><rect x="66" y="68" width="40" height="26" rx="9" fill="#0d0d12"/><path d="M72 74L84 72" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/><path d="M66 76L30 66" stroke="#0d0d12" stroke-width="4" stroke-linecap="round"/></g>
+</symbol>
+<symbol id="pb" viewBox="0 0 160 190">
+<g stroke="var(--oc)" stroke-width="15" stroke-linecap="round" fill="none">
+<g class="w"><path d="M38 100Q8 140 32 178"/><circle cx="19" cy="136" r="3.5" fill="#fff" stroke="none" opacity=".5"/><circle cx="26" cy="160" r="3.5" fill="#fff" stroke="none" opacity=".5"/></g>
+<g class="w" style="animation-delay:-1s"><path d="M64 108Q46 150 68 184"/><circle cx="52" cy="142" r="3.5" fill="#fff" stroke="none" opacity=".5"/><circle cx="58" cy="166" r="3.5" fill="#fff" stroke="none" opacity=".5"/></g>
+<g class="w" style="animation-delay:-2s"><path d="M96 108Q114 150 92 184"/><circle cx="108" cy="142" r="3.5" fill="#fff" stroke="none" opacity=".5"/><circle cx="102" cy="166" r="3.5" fill="#fff" stroke="none" opacity=".5"/></g>
+<g class="w" style="animation-delay:-.5s"><path d="M122 100Q152 140 128 178"/><circle cx="141" cy="136" r="3.5" fill="#fff" stroke="none" opacity=".5"/><circle cx="134" cy="160" r="3.5" fill="#fff" stroke="none" opacity=".5"/></g>
+</g>
+<ellipse cx="80" cy="66" rx="58" ry="62" fill="var(--oc)"/>
+<ellipse cx="58" cy="30" rx="30" ry="14" fill="#fff" opacity=".28" transform="rotate(-25 58 30)"/>
+<g fill="#000" opacity=".12"><circle cx="112" cy="38" r="6"/><circle cx="98" cy="24" r="4"/><circle cx="122" cy="56" r="4"/></g>
+<circle cx="56" cy="72" r="13" fill="#fff"/><circle cx="104" cy="72" r="13" fill="#fff"/>
+<g class="e"><circle cx="58" cy="73" r="6.5" fill="#111"/><circle cx="102" cy="73" r="6.5" fill="#111"/><circle cx="60" cy="70" r="2.2" fill="#fff"/><circle cx="104" cy="70" r="2.2" fill="#fff"/></g>
+</symbol>
+<symbol id="pulpo" viewBox="0 0 160 190"><use href="#pb" width="160" height="190"/><path d="M58 98Q80 116 102 98" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="36" cy="92" r="8" fill="#ff9bb5" opacity=".6"/><circle cx="124" cy="92" r="8" fill="#ff9bb5" opacity=".6"/></symbol>
+<symbol id="pulpoMad" viewBox="0 0 160 190"><use href="#pb" width="160" height="190"/><path d="M38 50L68 64M122 50L92 64" stroke="#111" stroke-width="7" stroke-linecap="round"/><path d="M60 108Q80 92 100 108" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></symbol>
+<symbol id="pulpoSad" viewBox="0 0 160 190"><use href="#pb" width="160" height="190"/><path d="M38 62L68 50M122 62L92 50" stroke="#111" stroke-width="6" stroke-linecap="round"/><path d="M64 108Q80 100 96 108" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="50" cy="98" r="5" fill="#8fd8ff"/></symbol>
+<symbol id="heart" viewBox="0 0 32 29"><path d="M16 28C2 18 0 8 7 3C12 0 16 4 16 7C16 4 20 0 25 3C32 8 30 18 16 28Z" fill="#ff4d79"/></symbol>
+<symbol id="fish" viewBox="0 0 60 30"><path d="M4 15Q22 -2 42 15Q22 32 4 15Z" fill="var(--f,#ffd23f)"/><path d="M40 15L58 3V27Z" fill="var(--f,#ffd23f)"/><circle cx="12" cy="13" r="2" fill="#111"/></symbol>
+<symbol id="weed" viewBox="0 0 60 200"><path d="M30 200C10 160 50 130 30 90C14 56 44 30 30 0" stroke="#22c77a" stroke-width="12" stroke-linecap="round" fill="none"/></symbol>
+<symbol id="coral" viewBox="0 0 80 100"><g stroke="#ff6b8b" stroke-width="9" stroke-linecap="round" fill="none"><path d="M40 100V40M40 70L16 46M40 58L66 30"/></g><g fill="#ff9bb5"><circle cx="40" cy="38" r="7"/><circle cx="16" cy="44" r="6"/><circle cx="66" cy="28" r="6"/></g></symbol>
+<g id="bg">
+<rect width="1600" height="900" fill="url(#sea)"/>
+<g class="rays" fill="#fff" opacity=".1"><polygon points="300,0 540,0 800,900 380,900"/><polygon points="800,0 980,0 1300,900 960,900"/><polygon points="1180,0 1290,0 1560,900 1340,900"/></g>
+<path d="M0 700C200 600 340 640 520 690C700 600 900 620 1100 690C1300 620 1450 640 1600 700V900H0Z" fill="#0e56a5" opacity=".55"/>
+<use class="dr" href="#fish" x="0" y="560" width="60" height="30" style="--f:#ffd23f;animation-duration:46s"/>
+<use class="dr" href="#fish" x="0" y="600" width="40" height="20" style="--f:#ff8a5c;animation-duration:38s;animation-delay:-14s"/>
+<use class="dr" href="#fish" x="0" y="520" width="44" height="22" style="--f:#b794ff;animation-duration:52s;animation-delay:-30s"/>
+<path d="M0 800Q400 760 800 800T1600 790V900H0Z" fill="#f7cf7d"/><path d="M0 850Q500 825 900 850T1600 845V900H0Z" fill="#e8ad55"/>
+<use class="sw" href="#weed" x="40" y="640" width="70" height="230"/><use class="sw" href="#weed" x="120" y="690" width="50" height="180" style="animation-delay:-2s"/><use class="sw" href="#weed" x="1440" y="650" width="70" height="230" style="animation-delay:-1s"/><use class="sw" href="#weed" x="1510" y="700" width="50" height="170" style="animation-delay:-3s"/>
+<use href="#coral" x="1290" y="730" width="140" height="140"/><use href="#coral" x="230" y="740" width="120" height="120"/>
+<g fill="#fff" opacity=".4"><circle class="b" cx="140" cy="950" r="14"/><circle class="b" cx="520" cy="1000" r="9" style="animation-delay:-3s"/><circle class="b" cx="900" cy="980" r="12" style="animation-delay:-6s"/><circle class="b" cx="1400" cy="960" r="16" style="animation-delay:-2s"/><circle class="b" cx="1150" cy="990" r="7" style="animation-delay:-8s"/></g>
+</g>
+</defs></svg>
 
-<div id="master-layout">
-    <div class="panel">
-        <div class="umu-branding">
-            <svg class="umu-logo-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" stroke="white" stroke-width="2" fill="none"/><text x="50" y="65" font-size="40" text-anchor="middle" fill="white" font-family="Arial">U</text></svg>
-            <div style="font-size: 0.45em; margin-top: 8px; letter-spacing: 4px;">FACULTAD DE PSICOLOGÍA</div>
-        </div>
+<div class="scene" id="s0"><svg viewBox="0 0 1600 900"><use href="#bg"/>
+<rect width="1600" height="372" fill="url(#sky)"/><circle cx="1260" cy="130" r="170" fill="url(#sunG)"/><circle cx="1260" cy="130" r="68" fill="#ffe36b"/>
+<g class="cl" fill="#fff" opacity=".92"><g transform="translate(0 70)"><ellipse cx="0" cy="0" rx="90" ry="26"/><ellipse cx="-40" cy="-16" rx="46" ry="26"/><ellipse cx="30" cy="-24" rx="50" ry="30"/></g></g>
+<path d="M0 372Q100 350 200 372T400 372T600 372T800 372T1000 372T1200 372T1400 372T1600 372V400H0Z" fill="#35b6ee"/>
+<g class="float"><use href="#orca" x="380" y="150" width="800" height="424" style="--sh:inline"/></g>
+<path d="M0 372Q100 352 200 372T400 372T600 372T800 372T1000 372T1200 372T1400 372T1600 372V900H0Z" fill="#1b86d8" opacity=".55"/>
+<path d="M0 372Q100 352 200 372T400 372T600 372T800 372T1000 372T1200 372T1400 372T1600 372" stroke="#fff" stroke-width="5" fill="none" opacity=".7"/>
+</svg></div>
 
-        <div id="avatar-engine">
-            <div class="stain-layer" id="stain"></div>
-            <div class="eye l"><div class="pupil"></div></div>
-            <div class="eye r"><div class="pupil"></div></div>
-            <div class="dark-circles" style="left:30px" id="oj-l"></div>
-            <div class="dark-circles" style="right:30px" id="oj-r"></div>
-            <div class="mouth-line" id="mouth"></div>
-        </div>
+<div class="scene" id="s1"><svg viewBox="0 0 1600 900"><use href="#bg"/><circle cx="940" cy="270" r="440" fill="url(#glow)"/>
+<g class="float"><use transform="scale(-1 1)" href="#orca" x="-600" y="290" width="560" height="297"/></g>
+<g class="bob"><rect x="640" y="70" width="600" height="400" rx="36" fill="#0b1b2e"/><rect x="664" y="94" width="552" height="352" rx="22" fill="url(#scr)"/>
+<path d="M720 330q30-30 60 0t60 0t60 0t60 0t60 0t60 0t60 0" stroke="#fff" stroke-width="6" fill="none" opacity=".6"/>
+<text x="940" y="230" text-anchor="middle" font-size="46" font-weight="800" fill="#06324d" font-family="Nunito,Segoe UI,sans-serif">Internet del Océano</text>
+<g class="a1"><use href="#pulpo" x="1040" y="276" width="140" height="166" style="--oc:#3b82f6"/></g></g></svg></div>
 
-        <div class="stats-grid">
-            <div class="s-box">
-                <div class="s-head"><span>Pulmones</span><span id="v-hp">100%</span></div>
-                <div class="b-outer"><div id="b-hp" class="b-inner" style="background:var(--money)"></div></div>
-            </div>
-            <div class="s-box">
-                <div class="s-head"><span>Paz Mental</span><span id="v-mp">100%</span></div>
-                <div class="b-outer"><div id="b-mp" class="b-inner" style="background:#3498db"></div></div>
-            </div>
-            <div class="s-box">
-                <div class="s-head"><span>Adicción</span><span id="v-ad">0%</span></div>
-                <div class="b-outer"><div id="b-ad" class="b-inner" style="background:var(--accent); width:0%"></div></div>
-            </div>
-            <div style="text-align:center; padding: 10px 0;">
-                <div id="v-cash" style="color:var(--money); font-size: 2.2em; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,136,0.2);">$200</div>
-                <div id="v-smell" style="font-size: 0.6em; color: var(--anxiety); margin-top: 5px;">OLOR: NULO</div>
-            </div>
-        </div>
-    </div>
+<div class="scene" id="s2"><svg viewBox="0 0 1600 900"><use href="#bg"/><circle cx="900" cy="280" r="480" fill="url(#glow)"/>
+<g class="float"><use transform="scale(-1 1)" href="#orca" x="-530" y="310" width="500" height="265"/></g>
+<rect x="560" y="60" width="680" height="440" rx="40" fill="#0b1b2e"/><rect x="588" y="88" width="624" height="384" rx="26" fill="url(#scr)"/>
+<g class="bob"><use href="#pulpo" x="765" y="130" width="270" height="320" style="--oc:#3b82f6"/></g>
+<use class="rise" href="#heart" x="640" y="340" width="56" height="50"/><use class="rise" href="#heart" x="1110" y="320" width="48" height="43" style="animation-delay:-2s"/><use class="rise" href="#heart" x="930" y="150" width="40" height="36" style="animation-delay:-3.5s"/><use class="rise" href="#heart" x="700" y="190" width="36" height="32" style="animation-delay:-1s"/></svg></div>
 
-    <div class="panel">
-        <div class="top-bar">
-            <span id="v-loc">📍 CAMPUS DE ESPINARDO</span>
-            <span id="v-age">EDAD: 18 | SEM: 1</span>
-        </div>
-        <div class="log-area" id="log">
-            <b>EL DESPERTAR:</b> Has bajado del tranvía en la parada de la UMU. Javi te espera apoyado en la pared de la facultad. Te tiende un cigarro de liar. "Primer día, nervios a tope. Fuma uno, es el rito de paso si quieres aguantar Microeconomía". <br><br><b style="color:var(--accent)">PRESIÓN SOCIAL: En este momento es obligatorio aceptar para no ser el marginado.</b>
-        </div>
-        <div id="actions" class="action-grid"></div>
-    </div>
+<div class="scene" id="s3"><svg viewBox="0 0 1600 900" data-step="0"><use href="#bg"/>
+<rect x="120" y="150" width="420" height="280" rx="30" fill="#0b1b2e"/><rect x="142" y="172" width="376" height="236" rx="18" fill="#12263b"/><path d="M160 400L300 180H350L210 400Z" fill="#fff" opacity=".06"/>
+<g class="a1"><rect x="142" y="172" width="376" height="236" rx="18" fill="url(#scr)"/><use href="#pulpo" x="262" y="232" width="140" height="166" style="--oc:#3b82f6"/></g>
+<use class="flash" href="#pulpoMad" x="1130" y="170" width="280" height="332" style="--oc:#e63946"/>
+<path d="M940 720C990 440 1100 395 1270 388C1450 382 1560 470 1600 720Z" fill="#5a4a8f"/><path d="M1010 560C1050 470 1130 428 1250 420" stroke="#8c7bd0" stroke-width="12" fill="none" stroke-linecap="round" opacity=".6"/></svg></div>
 
-    <div class="panel">
-        <div style="padding: 15px; font-size: 0.7em; background: #000; border-bottom: 1px solid #222; letter-spacing: 3px; color: var(--umu);">AFINIDAD SOCIAL</div>
-        <div id="social-list" class="social-scroll"></div>
-        <div id="achievement-log">
-            <div style="font-size: 0.6em; color: #444; margin-bottom: 5px;">LOGROS DESBLOQUEADOS</div>
-        </div>
-    </div>
+<div class="scene" id="s4"><svg viewBox="0 0 1600 900" data-step="0"><use href="#bg"/>
+<g class="float"><use transform="scale(-1 1)" href="#orca" x="-700" y="240" width="640" height="339"/></g>
+<g class="scr"><rect x="780" y="290" width="280" height="190" rx="24" fill="#0b1b2e"/><rect x="798" y="308" width="244" height="154" rx="14" fill="url(#scr)"/></g>
+<use class="flash" href="#pulpoMad" x="1190" y="190" width="250" height="296" style="--oc:#e63946"/>
+<path d="M1000 720C1050 420 1150 400 1300 396C1460 392 1560 480 1600 720Z" fill="#5a4a8f"/></svg></div>
+
+<div class="scene" id="s5"><svg viewBox="0 0 1600 900" data-step="0"><use href="#bg"/><circle cx="1400" cy="120" r="150" fill="url(#sunG)"/><circle cx="1400" cy="120" r="56" fill="#ffe36b"/>
+<g class="float"><use transform="scale(-1 1)" href="#orca" x="-730" y="270" width="620" height="329"/></g>
+<g class="a0"><use href="#pulpoSad" x="940" y="250" width="280" height="332" style="--oc:#ff8a5c"/></g>
+<g class="a1"><g class="bob"><use href="#pulpo" x="940" y="250" width="280" height="332" style="--oc:#ff8a5c"/></g>
+<use class="rise" href="#heart" x="820" y="320" width="50" height="45"/><use class="rise" href="#heart" x="1280" y="280" width="42" height="38" style="animation-delay:-2.5s"/><use class="rise" href="#heart" x="1050" y="190" width="36" height="32" style="animation-delay:-4s"/>
+<g fill="#ffe36b"><circle class="rise" cx="800" cy="220" r="9" style="animation-delay:-1s"/><circle class="rise" cx="1260" cy="170" r="7" style="animation-delay:-3s"/></g></g></svg></div>
+
+<div id="vig"></div>
+<div id="credits">Hecho por Julio López Torrente, Javier Martinez Gil y David Thomas Jimenez</div>
+<div id="sub"></div>
+<div id="start"><h1>Oli y Pipo</h1><p>Un cuento animado con voz. Sube el volumen.</p><div class="row"><button id="go">▶ Ver cuento</button><button id="fs" class="alt">⛶ Pantalla completa</button><button id="mu" class="alt">♪ Música: sí</button></div></div>
+<div id="end"><h1>Fin</h1><div class="row"><button id="re">↺ Ver otra vez</button></div></div>
 </div>
-
-<div id="final-screen">
-    <h1 id="final-title" style="color: var(--umu); font-size: 4em;">DESTINO SELLADO</h1>
-    <p id="final-msg" style="max-width: 800px; line-height: 1.8; color: #777;"></p>
-    <div style="background: #0a0a0a; padding: 40px; border: 1px solid #1a1a1a; margin-top: 20px;">
-        <p>DESARROLLADO POR:</p>
-        <h2 style="color: var(--money);">Julio Lopez Torrente | Pedro Vivancos Perez | David Thomas Jimenez</h2>
-    </div>
-    <button onclick="location.reload()" style="margin-top: 40px; border-color: var(--umu); padding: 20px 60px;">REINTENTAR</button>
-</div>
-
 <script>
-    let audioCtx, drone, gainNode;
-    function playAudio() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            drone = audioCtx.createOscillator();
-            gainNode = audioCtx.createGain();
-            drone.type = 'sine';
-            drone.frequency.setValueAtTime(40, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
-            drone.connect(gainNode); gainNode.connect(audioCtx.destination);
-            drone.start();
-        }
-    }
+const C=[
+[0,0,62,45,"Había una vez una orca muy grande llamada Oli, que era un tío súper chill."],
+[0,0,35,40,"A Oli le encantaba flotar de espaldas en el mar, tomar el sol y saludar a todos con una sonrisa relajada."],
+[1,0,45,50,"Un día, Oli encontró una pantalla mágica flotando en el agua. Era el «Internet del Océano»."],
+[1,1,70,40,"Al otro lado de la pantalla apareció un pulpo que decía llamarse Pipo."],
+[2,0,55,40,"En la pantalla, Pipo era de un color azul brillante y hermoso. Ponía caritas felices, mandaba corazones y decía con voz dulce:"],
+[2,0,25,55,"«¡Hola, Oli! ¡Soy tu mejor amigo! ¡Te quiero mucho!» Oli, muy chill, sonreía y flotaba feliz."],
+[3,0,80,40,"Pero, ¡cuidado! Fuera de la pantalla, escondido detrás de una roca, el pulpo Pipo cambiaba de color. Se ponía de un color rojo enojado y verde ruidoso."],
+[3,0,25,35,"Cuando la pantalla se apagaba, Pipo hacía muecas feas y decía: «¡Qué tonta es esa orca, no quiero ser su amigo!»"],
+[3,1,50,40,"Pipo tenía dos caras: una bonita en la pantalla y una fea en la vida real."],
+[4,0,25,50,"Oli la orca, que era muy observador, nadó despacito y vio al pulpo cambiar de color detrás de la roca. Oli no se enojó, porque era un tío muy chill."],
+[4,1,60,40,"Solo cerró la pantalla mágica, miró al pulpo y le dijo con calma: «Es más bonito ser un amigo de verdad que un color brillante en la pantalla»."],
+[5,0,70,45,"El pulpo Pipo se dio cuenta de que cambiar de color para engañar no era divertido. Se volvió de su color normal y le pidió perdón a Oli."],
+[5,1,50,45,"Desde ese día, jugaron juntos de verdad en el mar, sin pantallas."]
+];
+const $=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let run=0,voice=null,cur=-1;
+function pick(){try{const v=speechSynthesis.getVoices().filter(x=>x.lang&&x.lang.toLowerCase().startsWith('es'));const sc=x=>(/natural|neural|online/i.test(x.name)?100:0)+(/google/i.test(x.name)?60:0)+(/helena|elvira|alvaro|álvaro|jorge|monica|mónica|paulina|diego|lucia|lucía/i.test(x.name)?30:0)+(x.lang==='es-ES'?10:0)+(x.localService?0:5);voice=v.sort((a,b)=>sc(b)-sc(a))[0]||null}catch(e){}}
+try{pick();speechSynthesis.onvoiceschanged=pick}catch(e){}
+function speak(t){return new Promise(res=>{let d=false;const f=()=>{if(!d){d=true;res()}};setTimeout(f,t.length*95+3000);try{const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';if(voice)u.voice=voice;u.rate=1;u.pitch=1;u.onend=f;u.onerror=f;speechSynthesis.speak(u)}catch(e){f()}})}
+function cam(v,ms,i,ox,oy){v.style.animation='none';void v.getBoundingClientRect();v.style.transformOrigin=ox+'% '+oy+'%';v.style.animation=(i%2?'camB':'camA')+' '+ms+'ms ease-in-out forwards'}
 
-    let p = {
-        age: 18, sem: 1, totalSem: 1, hp: 100, mp: 100, ad: 0, cash: 200,
-        smell: 0, smoking: false, firstSmoke: true, jobLvl: 0, loc: "Campus",
-        partner: null, kids: 0, javiLife: true, kidSmokingProb: 0,
-        javiRel: 50, elenaRel: 0, parentsRel: 80,
-        ach: [], hospitalUnlocked: false
-    };
+/* ===== Música chill (generada en el navegador) ===== */
+let ac=null,master=null,nb=null,tm=null,nextT=0,step=0,mus=true;const beat=60/68,CH=[[48,52,55,59],[45,48,52,55],[41,45,48,52],[43,47,50,53]];
+function tone(m,t,dur,g,type,a){const o=ac.createOscillator(),e=ac.createGain();o.type=type;o.frequency.value=440*Math.pow(2,(m-69)/12);e.gain.setValueAtTime(0.0001,t);e.gain.linearRampToValueAtTime(g,t+a);e.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(e);e.connect(master);o.start(t);o.stop(t+dur+.1)}
+function kick(t){const o=ac.createOscillator(),e=ac.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(45,t+.12);e.gain.setValueAtTime(.2,t);e.gain.exponentialRampToValueAtTime(.001,t+.25);o.connect(e);e.connect(master);o.start(t);o.stop(t+.3)}
+function hat(t){const s=ac.createBufferSource();s.buffer=nb;const h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=7000;const e=ac.createGain();e.gain.setValueAtTime(.025,t);e.gain.exponentialRampToValueAtTime(.001,t+.05);s.connect(h);h.connect(e);e.connect(master);s.start(t)}
+function sched(){while(nextT<ac.currentTime+.3){const s=step,i=s%8,ch=CH[Math.floor(s/8)%4],t=nextT;if(i===0){ch.forEach(m=>tone(m,t,beat*4+.5,.045,'triangle',.9));tone(ch[0]-12,t,beat*2,.16,'sine',.02)}if(i===5)tone(ch[0]-12,t,beat*1.5,.12,'sine',.02);if(Math.random()>.25)tone(ch[[0,2,1,3,2,1,3,2][i]]+12,t,.9,.05,'triangle',.01);if(i===0||i===4)kick(t);if(i%2)hat(t);nextT+=beat/2;step++}}
+function musicOn(){if(!mus)return;try{if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();master=ac.createGain();const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=4500;const dl=ac.createDelay();dl.delayTime.value=beat*.75;const fb=ac.createGain();fb.gain.value=.35;master.connect(lp);lp.connect(ac.destination);lp.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(ac.destination);const n=Math.floor(ac.sampleRate*.05);nb=ac.createBuffer(1,n,ac.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1}ac.resume();clearInterval(tm);master.gain.cancelScheduledValues(ac.currentTime);master.gain.setTargetAtTime(.7,ac.currentTime,1.5);nextT=ac.currentTime+.15;step=0;tm=setInterval(sched,50)}catch(e){}}
+function musicOff(){if(!ac)return;master.gain.setTargetAtTime(0,ac.currentTime,1.5);const x=tm;setTimeout(()=>{if(tm===x)clearInterval(tm)},6000)}
+/* ================================================== */
 
-    const LOCS = { "Campus": "📍 CAMPUS", "Biblioteca": "📚 BIBLIOTECA", "Oficina": "💼 OFICINA", "Casa": "🏠 HOGAR", "Club": "🌙 CLUB", "Hospital": "🏥 LA ARRIXACA", "Casino": "🎰 CASINO", "Gimnasio": "💪 GIMNASIO" };
-
-    function unlock(name) {
-        if (!p.ach.includes(name)) {
-            p.ach.push(name);
-            document.getElementById('achievement-log').innerHTML += `<span class="ach-msg">★ ${name}</span>`;
-        }
-    }
-
-    function updateUI() {
-        document.getElementById('b-hp').style.width = p.hp + "%";
-        document.getElementById('b-mp').style.width = p.mp + "%";
-        document.getElementById('b-ad').style.width = p.ad + "%";
-        document.getElementById('v-hp').innerText = Math.round(p.hp) + "%";
-        document.getElementById('v-mp').innerText = Math.round(p.mp) + "%";
-        document.getElementById('v-ad').innerText = p.ad + "%";
-        document.getElementById('v-cash').innerText = "$" + Math.floor(p.cash);
-        document.getElementById('v-smell').innerText = "OLOR: " + (p.smell > 60 ? "INTENSO" : p.smell > 20 ? "DETECTABLE" : "NULO");
-        document.getElementById('v-age').innerText = `EDAD: ${p.age} | SEM: ${p.sem}`;
-        document.getElementById('v-loc').innerText = LOCS[p.loc];
-
-        const face = document.getElementById('avatar-engine');
-        face.style.background = `rgb(${255 - p.ad}, ${219 - (p.hp<30?50:0) - p.ad}, ${172 - p.ad})`;
-        document.getElementById('stain').style.opacity = p.ad / 100;
-        document.getElementById('mouth').style.borderRadius = p.mp < 40 ? "50% 50% 0 0" : "10px";
-        document.getElementById('oj-l').style.opacity = (100 - p.mp) / 100;
-        document.getElementById('oj-r').style.opacity = (100 - p.mp) / 100;
-
-        renderSocial();
-
-        if (p.hp < 20) p.hospitalUnlocked = true;
-        if (p.hp <= 0) finish("FALLECIMIENTO", "Tus pulmones dijeron basta tras años de humo.");
-        if (p.cash <= -100) finish("INDIGENCIA", "La deuda de -$100 te dejó en la calle.");
-    }
-
-    function passSemester() {
-        if (p.loc !== "Casa") { alert("Solo puedes avanzar de semestre durmiendo en CASA."); return; }
-        
-        p.sem++; p.totalSem++;
-        if (p.sem > 2) { p.sem = 1; p.age++; }
-
-        // BECA CADA 2 SEMESTRES
-        if (p.totalSem % 2 === 0 && p.totalSem <= 8) {
-            if (p.mp > 40) {
-                p.cash += 350;
-                document.getElementById('log').innerHTML += `<br><b style="color:var(--money)">BECA UMU RECIBIDA:</b> +$350 por rendimiento académico.<br>`;
-            } else {
-                document.getElementById('log').innerHTML += `<br><b style="color:var(--accent)">BECA PERDIDA:</b> Tu inestabilidad mental te impidió estudiar.<br>`;
-            }
-        }
-
-        // TRABAJO (Post 8 sem)
-        if (p.totalSem > 8) {
-            if (p.jobLvl === 0) p.jobLvl = 1;
-            let wage = p.jobLvl * 350;
-            if (p.smoking) wage *= 0.6; // Mal rendimiento por fumar
-            p.cash += wage;
-            document.getElementById('log').innerHTML += `<br><b>PAGO SEMESTRAL:</b> Has cobrado $${Math.round(wage)} por tu trabajo.<br>`;
-        }
-
-        // HIJOS A LOS 23
-        if (p.age === 23 && p.kids === 0 && p.partner === "Elena") {
-            p.kids = 1;
-            unlock("Paternidad");
-            document.getElementById('log').innerHTML += `<br><b>VIDA:</b> Tienes un hijo. La responsabilidad te agobia.<br>`;
-        }
-
-        // GASTOS
-        let bills = 80;
-        if (p.partner) bills += 60;
-        if (p.kids > 0) bills += 130;
-        p.cash -= bills;
-
-        // LÓGICA TABACO
-        if (p.smoking) {
-            p.ad = Math.min(100, p.ad + 15);
-            p.hp -= (5 + (p.ad/5));
-            p.mp = Math.min(100, p.mp + 20);
-            p.cash -= (40 + p.ad);
-            p.smell = 100;
-            if (p.partner === "Elena") p.elenaRel -= 30;
-            p.parentsRel -= 10;
-        } else {
-            p.ad = Math.max(0, p.ad - 8);
-            p.mp -= 30;
-            p.smell = Math.max(0, p.smell - 60);
-        }
-
-        // TENSIÓN EN CASA
-        if (p.loc === "Casa" && p.smell > 30 && Math.random() > 0.5) {
-            p.parentsRel -= 40;
-            document.getElementById('log').innerHTML += `<br><b style="color:var(--accent)">TENSIÓN FAMILIAR:</b> Tus padres huelen el tabaco en tu ropa. La discusión es amarga.<br>`;
-        }
-
-        // EFECTO ESPEJO HIJOS
-        if (p.kids > 0 && p.smoking) {
-            p.kidSmokingProb += 15;
-            if (p.kidSmokingProb > 60) unlock("Heredero del Humo");
-        }
-
-        // MUERTE JAVI
-        if (p.age === 28 && p.javiLife) { p.javiLife = false; p.mp -= 50; unlock("Tragedia Javi"); }
-
-        if (p.elenaRel <= 0 && p.partner === "Elena") {
-            p.partner = null; p.kids = 0; p.cash -= 200;
-            unlock("Abandono de Elena");
-        }
-
-        document.getElementById('log').innerHTML = `<b>SEM. ${p.totalSem}:</b> Comienza un nuevo semestre. El tiempo no perdona.<br><br>` + document.getElementById('log').innerHTML;
-        renderActions();
-        updateUI();
-    }
-
-    function move(dest) {
-        playAudio();
-        p.loc = dest;
-        // Elena Semestre 5
-        if (p.totalSem === 5 && p.loc === "Biblioteca" && !p.partner) {
-            p.partner = "Elena";
-            p.elenaRel = 70;
-            document.getElementById('log').innerHTML = `<b>HISTORIA:</b> Es el Semestre 5. En la biblioteca conoces a Elena. Odia el olor a tabaco, pero hay química.<br>` + document.getElementById('log').innerHTML;
-        }
-        updateUI();
-        renderActions();
-    }
-
-    function doAction(msg, hp=0, mp=0, cash=0, rel=0) {
-        p.hp = Math.max(0, Math.min(100, p.hp + hp));
-        p.mp = Math.max(0, Math.min(100, p.mp + mp));
-        p.cash += cash;
-        if (p.partner === "Elena") p.elenaRel = Math.max(0, p.elenaRel + rel);
-        document.getElementById('log').innerHTML = `<b>ACCIÓN:</b> ${msg}<br>` + document.getElementById('log').innerHTML;
-        updateUI();
-        renderActions();
-    }
-
-    function renderActions() {
-        const grid = document.getElementById('actions');
-        grid.innerHTML = "";
-
-        if (p.firstSmoke) {
-            addBtn("ACEPTAR CIGARRO DE JAVI", () => { p.smoking = true; p.firstSmoke = false; p.smell = 100; updateUI(); renderActions(); }, "btn-safe");
-            return;
-        }
-
-        if (p.loc === "Casa") {
-            addBtn("DORMIR (Siguiente Semestre)", () => passSemester(), "btn-sleep");
-            if (p.cash < 40) {
-                addBtn("ROBAR DINERO (RIESGO)", () => {
-                    if (Math.random() > 0.6) {
-                        p.cash -= 100; p.parentsRel = 0; p.mp -= 60;
-                        doAction("¡TE HAN PILLADO ROBANDO! Tus padres te quitan todo lo que tienes.", 0, -50, -100);
-                    } else {
-                        doAction("Robas $100 con éxito.", 0, -20, 100);
-                    }
-                }, "btn-desperate");
-            }
-        }
-
-        addBtn(p.smoking ? "Seguir Fumando" : "RECAER", () => { p.smoking = true; p.smell = 100; doAction("Enciendes un cigarro.", -3, 20, 0, -15); }, "btn-desperate");
-
-        if (p.loc === "Gimnasio") {
-            addBtn("Entrenar (-$40)", () => {
-                let r = p.smoking ? 2 : 18;
-                doAction(p.smoking ? "Te ahogas al entrenar por el tabaco." : "Te sientes sano.", r, 10, -40);
-            }, "btn-safe");
-        }
-
-        if (p.loc === "Hospital" && p.hospitalUnlocked) {
-            addBtn("CIRUGÍA CRÍTICA (-$900)", () => {
-                if (p.cash >= 900) { p.hp = 80; p.cash -= 900; p.hospitalUnlocked = false; doAction("Sobrevives a la operación."); }
-                else alert("No tienes dinero suficiente.");
-            });
-        }
-
-        if (p.partner === "Elena" && p.loc === "Casa") {
-            addBtn("Cita con Elena (-$70)", () => { doAction("Cena romántica.", 0, 40, -70, 25); });
-        }
-
-        if (p.loc !== "Campus") addBtn("Ir a UMU", () => move("Campus"));
-        if (p.loc !== "Biblioteca") addBtn("Ir a Biblioteca", () => move("Biblioteca"));
-        if (p.loc !== "Gimnasio") addBtn("Ir a Gimnasio", () => move("Gimnasio"));
-        if (p.loc !== "Club") addBtn("Ir al Club", () => move("Club"));
-        if (p.loc !== "Casa") addBtn("Ir a Casa", () => move("Casa"));
-        if (p.hospitalUnlocked && p.loc !== "Hospital") addBtn("URGENCIAS", () => move("Hospital"), "btn-desperate");
-    }
-
-    function addBtn(txt, fn, cls = "") {
-        const b = document.createElement('button');
-        b.innerText = txt; b.onclick = fn;
-        if (cls) b.className = cls;
-        document.getElementById('actions').appendChild(b);
-    }
-
-    function renderSocial() {
-        const s = document.getElementById('social-list');
-        s.innerHTML = `<div class="npc-card"><b>Javi</b> [${p.javiLife?'Vivo':'Fallecido'}] Aff: ${p.javiRel}%</div>`;
-        if (p.partner) {
-            s.innerHTML += `<div class="npc-card"><b>Elena</b> Afinidad:
-            <div class="affinity-bar-bg"><div class="affinity-bar-fill" style="width:${p.elenaRel}%"></div></div></div>`;
-        }
-        s.innerHTML += `<div class="npc-card"><b>Padres</b> Afinidad:
-        <div class="affinity-bar-bg"><div class="affinity-bar-fill" style="width:${p.parentsRel}%"></div></div></div>`;
-        if (p.kids > 0) s.innerHTML += `<div class="npc-card"><b>Hijo</b> Riesgo Tabaco: ${p.kidSmokingProb}%</div>`;
-    }
-
-    function finish(t, m) {
-        document.getElementById('master-layout').style.display = "none";
-        document.getElementById('final-screen').style.display = "flex";
-        document.getElementById('final-title').innerText = t;
-        document.getElementById('final-msg').innerText = m;
-    }
-
-    updateUI();
-    renderActions();
+async function play(){
+  const t=++run;try{speechSynthesis.cancel()}catch(e){}
+  $('start').style.display='none';$('end').style.display='none';$('sub').style.display='block';cur=-1;musicOn();
+  document.querySelectorAll('.scene svg').forEach(v=>{if(v.dataset.step)v.dataset.step='0'});
+  for(let i=0;i<C.length;i++){
+    if(t!==run)return;
+    const [s,st,ox,oy,txt]=C[i],v=document.querySelector('#s'+s+' svg');
+    if(s!==cur){document.querySelectorAll('.scene').forEach((e,k)=>e.classList.toggle('on',k===s));cur=s}
+    if(v.dataset.step!==undefined)v.dataset.step=st;
+    cam(v,txt.length*70+2500,i,ox,oy);$('sub').textContent=txt;
+    await speak(txt);
+    await sleep(2500);
+  }
+  if(t===run){$('sub').style.display='none';$('end').style.display='flex';musicOff()}
+}
+$('mu').onclick=()=>{mus=!mus;$('mu').textContent=mus?'♪ Música: sí':'♪ Música: no'};$('go').onclick=play;$('re').onclick=play;
+$('fs').onclick=()=>{const s=$('stage');(s.requestFullscreen||s.webkitRequestFullscreen||function(){}).call(s)};
 </script>
 </body>
 </html>
